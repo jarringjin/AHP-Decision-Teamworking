@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHP Decision Instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0F1417;
+    --panel: #161D22;
+    --panel-2: #1C242A;
+    --grid: #2A343C;
+    --grid-soft: #212A30;
+    --text: #E8EDF0;
+    --text-dim: #8B9AA5;
+    --text-faint: #576169;
+    --accent: #4FA8D8;
+    --accent-dim: #2E5A70;
+    --good: #5FB88A;
+    --warn: #E8A33D;
+    --bad: #E15B5B;
+    --violet: #9B8CE0;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh;}
+  body{
+    background-image:
+      linear-gradient(var(--grid-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-soft) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-attachment: fixed;
+    padding: 28px 20px 80px;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+  .wrap{max-width: 1000px; margin: 0 auto;}
+
+  header{display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--grid); padding-bottom:18px; margin-bottom:22px;}
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand .mark{width:34px; height:34px; border:1.5px solid var(--accent); border-radius:50%; position:relative; flex-shrink:0;}
+  .brand .mark::before{content:""; position:absolute; left:50%; top:50%; width:1.5px; height:12px; background:var(--accent); transform-origin: bottom center; transform: translate(-50%,-100%) rotate(35deg);}
+  .brand .mark::after{content:""; position:absolute; left:50%; top:50%; width:3px; height:3px; background:var(--accent); border-radius:50%; transform:translate(-50%,-50%);}
+  h1{font-family:'Space Grotesk',sans-serif; font-size:19px; font-weight:700; letter-spacing:0.2px;}
+  .subtitle{font-size:11.5px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; margin-top:2px; letter-spacing:0.3px;}
+  .header-right{text-align:right;}
+  .instrument-id{font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-faint); line-height:1.6;}
+  .header-links{margin-top:8px; display:flex; gap:10px; justify-content:flex-end;}
+  .link-btn{font-family:'JetBrains Mono'; font-size:10.5px; color:var(--accent); background:none; border:1px solid var(--accent-dim); padding:5px 10px; border-radius:20px; cursor:pointer;}
+  .link-btn:hover{border-color:var(--accent);}
+  .link-btn.quiet{color:var(--text-faint); border-color:var(--grid);}
+  .link-btn.quiet:hover{color:var(--text-dim); border-color:var(--text-dim);}
+
+  .stepnav{display:flex; gap:2px; margin-bottom:26px; border:1px solid var(--grid); border-radius:var(--radius); overflow:hidden; flex-wrap:wrap;}
+  .stepnav button{
+    flex:1; min-width:90px; background:var(--panel); border:none; color:var(--text-faint); padding:11px 6px; cursor:pointer;
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.3px; border-right:1px solid var(--grid);
+    transition: background .15s, color .15s;
+  }
+  .stepnav button:last-child{border-right:none;}
+  .stepnav button .n{display:block; font-size:9px; opacity:.7; margin-bottom:3px;}
+  .stepnav button.active{background:var(--accent-dim); color:var(--text);}
+  .stepnav button.done{color:var(--good);}
+  .stepnav button:disabled{cursor:not-allowed; opacity:.55;}
+  .stepnav button:not(:disabled):hover{background:var(--panel-2); color:var(--text);}
+
+  .panel{background:var(--panel); border:1px solid var(--grid); border-radius:var(--radius); padding:22px 22px 24px;}
+  .panel + .panel{margin-top:16px;}
+  .panel h2{font-family:'Space Grotesk'; font-size:15px; margin-bottom:4px; display:flex; align-items:center; gap:8px;}
+  .panel h2 .tag{font-family:'JetBrains Mono'; font-size:10px; color:var(--accent); border:1px solid var(--accent-dim); padding:2px 6px; border-radius:2px;}
+  .panel .desc{color:var(--text-dim); font-size:12.5px; margin-bottom:18px; line-height:1.5; max-width:660px;}
+
+  .item-list{display:flex; flex-direction:column; gap:8px; margin-bottom:14px;}
+  .item-row{display:flex; align-items:center; gap:10px;}
+  .item-row .idx{font-family:'JetBrains Mono'; font-size:11px; color:var(--text-faint); width:26px; flex-shrink:0;}
+  .item-row input[type=text]{
+    flex:1; background:var(--panel-2); border:1px solid var(--grid); color:var(--text); padding:9px 11px;
+    border-radius:var(--radius); font-size:13px; font-family:'Inter';
+  }
+  .item-row input[type=text]:focus{outline:none; border-color:var(--accent);}
+  .item-row input[disabled]{color:var(--text-dim); opacity:0.8;}
+  .item-row button.rm{background:none; border:1px solid var(--grid); color:var(--text-faint); width:32px; height:34px; border-radius:var(--radius); cursor:pointer; font-size:15px; line-height:1; flex-shrink:0;}
+  .item-row button.rm:hover{border-color:var(--bad); color:var(--bad);}
+  .add-btn{background:none; border:1px dashed var(--grid); color:var(--text-dim); padding:9px 14px; border-radius:var(--radius); cursor:pointer; font-size:12px; font-family:'JetBrains Mono'; width:100%;}
+  .add-btn:hover{border-color:var(--accent); color:var(--accent);}
+
+  .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px; flex-wrap:wrap;}
+  .btn{font-family:'JetBrains Mono'; font-size:12px; padding:10px 18px; border-radius:var(--radius); cursor:pointer; border:1px solid var(--grid); background:none; color:var(--text-dim);}
+  .btn:hover{color:var(--text); border-color:var(--text-dim);}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#08161C; font-weight:600;}
+  .btn.primary:hover{background:#66B9E0; border-color:#66B9E0; color:#08161C;}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  .chip{width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:9.5px; font-weight:700; font-family:'JetBrains Mono'; color:#08161C; flex-shrink:0;}
+
+  .role-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:6px;}
+  @media (max-width:640px){ .role-grid{grid-template-columns:1fr;} }
+  .role-card{background:var(--panel-2); border:1px solid var(--grid); border-radius:var(--radius); padding:20px; cursor:pointer; text-align:left; transition:border-color .15s;}
+  .role-card:hover{border-color:var(--accent);}
+  .role-card .role-eyebrow{font-family:'JetBrains Mono'; font-size:10px; color:var(--accent); letter-spacing:0.4px; margin-bottom:8px;}
+  .role-card h3{font-family:'Space Grotesk'; font-size:15px; margin-bottom:8px;}
+  .role-card p{font-size:12.5px; color:var(--text-dim); line-height:1.5;}
+  .resume-row{margin-top:18px; padding-top:16px; border-top:1px solid var(--grid-soft); display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .resume-row label.filebtn{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-dim); border:1px dashed var(--grid); padding:9px 14px; border-radius:var(--radius); cursor:pointer;}
+  .resume-row label.filebtn:hover{border-color:var(--accent); color:var(--accent);}
+
+  .code-box{width:100%; background:var(--panel-2); border:1px solid var(--grid); color:var(--accent); padding:12px 14px; border-radius:var(--radius); font-family:'JetBrains Mono'; font-size:11.5px; line-height:1.6; resize:vertical; min-height:70px; word-break:break-all;}
+  .code-box:focus{outline:none; border-color:var(--accent);}
+  .code-actions{display:flex; gap:8px; margin-top:8px;}
+  .copy-status{font-family:'JetBrains Mono'; font-size:10.5px; color:var(--good); opacity:0; transition:opacity .2s; align-self:center;}
+  .copy-status.show{opacity:1;}
+
+  .instructions-box{background:var(--panel-2); border:1px solid var(--grid-soft); border-radius:var(--radius); padding:14px 16px; font-size:12px; color:var(--text-dim); line-height:1.7; margin-top:10px;}
+  .instructions-box ol{padding-left:18px;}
+  .instructions-box strong{color:var(--text);}
+
+  .person-tabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+  .person-tabs button{
+    display:flex; align-items:center; gap:7px; font-family:'JetBrains Mono'; font-size:11px; padding:6px 12px 6px 6px; border-radius:20px; border:1px solid var(--grid);
+    background:none; color:var(--text-dim); cursor:pointer;
+  }
+  .person-tabs button.active{background:var(--accent-dim); border-color:var(--accent); color:var(--text);}
+
+  .crit-tabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;}
+  .crit-tabs button{
+    font-family:'JetBrains Mono'; font-size:11px; padding:7px 12px; border-radius:20px; border:1px solid var(--grid);
+    background:none; color:var(--text-dim); cursor:pointer;
+  }
+  .crit-tabs button.active{background:var(--accent-dim); border-color:var(--accent); color:var(--text);}
+  .crit-tabs button.warnflag::after{content:" !"; color:var(--warn);}
+
+  .subtab-label{font-size:10.5px; color:var(--text-faint); font-family:'JetBrains Mono'; letter-spacing:0.4px; margin-bottom:6px; text-transform:uppercase;}
+
+  .pair-block{border-top:1px solid var(--grid-soft); padding:18px 0;}
+  .pair-block:first-of-type{border-top:none; padding-top:4px;}
+  .pair-heads{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:10px;}
+  .pair-heads .left{color:var(--text); font-weight:600;}
+  .pair-heads .right{color:var(--text); font-weight:600;}
+  .pair-heads .vs{color:var(--text-faint); font-family:'JetBrains Mono'; font-size:10px;}
+
+  .scale{position:relative; padding: 6px 0 4px;}
+  .scale .track{position:relative; height:2px; background:var(--grid); border-radius:2px;}
+  .scale .track .mid-mark{position:absolute; left:50%; top:-4px; width:1px; height:10px; background:var(--text-faint); transform:translateX(-50%);}
+  .scale .ticks{display:flex; justify-content:space-between; margin-top:-1px;}
+  .scale .tick{
+    width: 22px; height:22px; border-radius:50%; border:1px solid var(--grid); background:var(--panel-2);
+    cursor:pointer; position:relative; top:-11px; transition: all .12s;
+  }
+  .scale .tick:hover{border-color:var(--accent);}
+  .scale .tick.selected{background:var(--accent); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-dim);}
+  .scale .tick.mid.selected{background:var(--text-dim); border-color:var(--text-dim); box-shadow:0 0 0 3px var(--grid);}
+  .scale-label{text-align:center; font-family:'JetBrains Mono'; font-size:11px; color:var(--accent); margin-top:6px; letter-spacing:0.2px;}
+  .scale-spread{text-align:center; font-family:'JetBrains Mono'; font-size:10px; color:var(--text-faint); margin-top:3px;}
+
+  .cr-row{display:flex; align-items:center; gap:16px; margin-top:22px; padding-top:16px; border-top:1px solid var(--grid-soft);}
+  .cr-gauge{flex-shrink:0;}
+  .cr-info{font-family:'JetBrains Mono'; font-size:12px; color:var(--text-dim); line-height:1.7;}
+  .cr-info .val{font-size:16px; font-weight:700;}
+  .cr-info .status{font-size:11px; letter-spacing:0.3px; padding:2px 7px; border-radius:2px; display:inline-block; margin-top:2px;}
+  .status.good{color:var(--good); border:1px solid var(--good);}
+  .status.warn{color:var(--warn); border:1px solid var(--warn);}
+  .status.bad{color:var(--bad); border:1px solid var(--bad);}
+
+  .rank-row{display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--grid-soft);}
+  .rank-row:last-child{border-bottom:none;}
+  .rank-pos{font-family:'Space Grotesk'; font-weight:700; font-size:15px; color:var(--text-faint); width:22px;}
+  .rank-row.first .rank-pos{color:var(--accent);}
+  .rank-name{width:150px; font-size:13px; flex-shrink:0;}
+  .rank-bar-bg{flex:1; height:20px; background:var(--panel-2); border-radius:2px; overflow:hidden; border:1px solid var(--grid-soft);}
+  .rank-bar-fill{height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); transition: width .5s ease;}
+  .rank-row.first .rank-bar-fill{background:linear-gradient(90deg, #2E7A50, var(--good));}
+  .rank-pct{font-family:'JetBrains Mono'; font-size:12.5px; width:56px; text-align:right; color:var(--text-dim);}
+  .rank-row.first .rank-pct{color:var(--good); font-weight:700;}
+
+  .matrix-table{width:100%; border-collapse:collapse; font-family:'JetBrains Mono'; font-size:11.5px; margin-top:8px;}
+  .matrix-table th, .matrix-table td{border:1px solid var(--grid-soft); padding:7px 8px; text-align:center; color:var(--text-dim);}
+  .matrix-table th{color:var(--text-faint); font-weight:500; background:var(--panel-2);}
+  .matrix-table td.wcell{color:var(--accent); font-weight:600;}
+
+  .foot-note{font-size:11px; color:var(--text-faint); margin-top:10px; line-height:1.6;}
+  .completion-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:8px; margin-top:6px;}
+  .completion-cell{border:1px solid var(--grid-soft); border-radius:var(--radius); padding:8px 10px; font-family:'JetBrains Mono'; font-size:11px; display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  .completion-cell .ok{color:var(--good);}
+  .completion-cell .pending{color:var(--text-faint);}
+
+  .participant-row{display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--grid-soft); border-radius:var(--radius); margin-bottom:8px;}
+  .participant-row .name{flex:1; font-size:13px;}
+  .participant-row .src{font-family:'JetBrains Mono'; font-size:10px; color:var(--text-faint); border:1px solid var(--grid); padding:2px 7px; border-radius:10px;}
+  .participant-row .cr-tag{font-family:'JetBrains Mono'; font-size:10.5px; padding:2px 7px; border-radius:10px;}
+
+  .error-box{background:rgba(225,91,91,0.08); border:1px solid var(--bad); color:var(--bad); padding:10px 14px; border-radius:var(--radius); font-size:12px; font-family:'JetBrains Mono'; margin-top:10px; line-height:1.6;}
+  .success-box{background:rgba(95,184,138,0.08); border:1px solid var(--good); color:var(--good); padding:10px 14px; border-radius:var(--radius); font-size:12px; font-family:'JetBrains Mono'; margin-top:10px; line-height:1.6;}
+
+  input[type=text].name-input{width:100%; background:var(--panel-2); border:1px solid var(--grid); color:var(--text); padding:11px 13px; border-radius:var(--radius); font-size:13.5px; font-family:'Inter';}
+  input[type=text].name-input:focus{outline:none; border-color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ============== AHP MATH ============== */
+const SAATY_LABEL = {
+  1:"Equal importance", 2:"Weak dominance", 3:"Moderate dominance",
+  4:"Moderate-plus dominance", 5:"Strong dominance", 6:"Strong-plus dominance",
+  7:"Very strong dominance", 8:"Very-very strong", 9:"Extreme dominance"
+};
+const RI = {1:0,2:0,3:0.58,4:0.9,5:1.12,6:1.24,7:1.32,8:1.41,9:1.45,10:1.49};
+const PALETTE = ["#4FA8D8","#9B8CE0","#E8A33D","#5FB88A","#E15B5B","#4FD8C4","#D88CC9","#B0C24F"];
+
+function pairKey(i,j){ return i<j ? i+"_"+j : j+"_"+i; }
+function initials(name){ return (name||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase() || "?"; }
+function personColor(idx){ return PALETTE[idx % PALETTE.length]; }
+
+function buildMatrix(n, pairs){
+  const M = Array.from({length:n},()=>Array(n).fill(1));
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      const v = (pairs && pairs[pairKey(i,j)]) ?? 1;
+      M[i][j] = v;
+      M[j][i] = 1/v;
+    }
+  }
+  return M;
+}
+
+function computeWeights(M){
+  const n = M.length;
+  if(n===1) return {weights:[1], lambdaMax:1, CI:0, CR:0};
+  const gm = M.map(row => Math.pow(row.reduce((a,b)=>a*b,1), 1/n));
+  const sum = gm.reduce((a,b)=>a+b,0);
+  const weights = gm.map(v=>v/sum);
+  const weightedSums = M.map(row => row.reduce((acc,val,j)=>acc+val*weights[j],0));
+  const ratios = weightedSums.map((ws,i)=> ws/weights[i]);
+  const lambdaMax = ratios.reduce((a,b)=>a+b,0)/n;
+  const CI = (lambdaMax - n)/(n-1);
+  const ri = RI[n] ?? 1.49;
+  const CR = ri===0 ? 0 : CI/ri;
+  return {weights, lambdaMax, CI, CR};
+}
+
+function aggregatePairs(n, pairsByPerson, personIds){
+  const agg = {};
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      const key = pairKey(i,j);
+      const vals = personIds.map(pid => (pairsByPerson[pid]||{})[key]).filter(v=>v!==undefined && v!==null);
+      if(vals.length===0){ agg[key]=1; continue; }
+      const logSum = vals.reduce((a,v)=>a+Math.log(v),0);
+      agg[key] = Math.exp(logSum/vals.length);
+    }
+  }
+  return agg;
+}
+
+function pairSpread(n, pairsByPerson, personIds, i, j){
+  const key = pairKey(i,j);
+  return personIds.map(pid => (pairsByPerson[pid]||{})[key]).filter(v=>v!==undefined && v!==null);
+}
+
+function valueToIdx(v){
+  if(v===undefined || v===null) return 8;
+  if(v>1) return 8-(v-1);
+  if(v<1) return 8+(Math.round(1/v)-1);
+  return 8;
+}
+
+/* ============== ENCODE / DECODE ============== */
+function b64encode(obj){
+  return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+}
+function b64decode(str){
+  return JSON.parse(decodeURIComponent(escape(atob(str.trim()))));
+}
+function namesOf(list){ return list.map(x=>x.name); }
+function sameConfig(critA, altA, critB, altB){
+  return JSON.stringify(namesOf(critA))===JSON.stringify(namesOf(critB)) &&
+         JSON.stringify(namesOf(altA))===JSON.stringify(namesOf(altB));
+}
+
+/* ============== STATE ============== */
+function freshState(){
+  return {
+    role: null,               // 'coordinator' | 'participant'
+    goal: "Decision goal",
+    criteria: [ {id:1,name:"Criterion A"}, {id:2,name:"Criterion B"}, {id:3,name:"Criterion C"} ],
+    alternatives: [ {id:1,name:"Option 1"}, {id:2,name:"Option 2"}, {id:3,name:"Option 3"} ],
+    nextCritId: 4, nextAltId: 4,
+
+    // coordinator
+    cPhase: 'goal',            // goal | criteria | alternatives | collect | selfweights | selfscoring | results
+    participants: [],          // {id, name, source:'self'|'imported', critPairs:{}, altPairsByCrit:{critId:{}}}
+    nextParticipantId: 1,
+    selfName: "",
+    draftCritPairs: {},
+    draftAltPairsByCrit: {},
+    draftActiveCrit: null,
+    importText: "",
+    importMessages: [],
+
+    // participant
+    pPhase: 'load',            // load | weights | scoring | export
+    setupCodeInput: "",
+    loadError: "",
+    myName: "",
+    myCritPairs: {},
+    myAltPairsByCrit: {},
+    myActiveCrit: null,
+    exportCode: ""
+  };
+}
+let state = freshState();
+
+function render(){ document.getElementById('app').innerHTML = renderApp(); attachHandlers(); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function escapeAttr(s){ return escapeHtml(s); }
+
+/* ============== SHARED WIDGETS ============== */
+function crGauge(cr){
+  const capped = Math.min(cr, 0.3);
+  const angle = (capped/0.3)*180;
+  const rad = (angle-180) * Math.PI/180;
+  const cx=50, cy=50, r=40;
+  const nx = cx + r*Math.cos(rad);
+  const ny = cy + r*Math.sin(rad);
+  return `
+  <svg width="100" height="62" viewBox="0 0 100 58" class="cr-gauge">
+    <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--grid)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 10 50 A 40 40 0 0 1 33 15.4" fill="none" stroke="var(--good)" stroke-width="6" stroke-linecap="round" opacity="0.85"/>
+    <path d="M 33 15.4 A 40 40 0 0 1 45 10.7" fill="none" stroke="var(--warn)" stroke-width="6" opacity="0.85"/>
+    <path d="M 45 10.7 A 40 40 0 0 1 90 50" fill="none" stroke="var(--bad)" stroke-width="6" stroke-linecap="round" opacity="0.85"/>
+    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="var(--text)" stroke-width="2"/>
+    <circle cx="${cx}" cy="${cy}" r="3.2" fill="var(--text)"/>
+  </svg>`;
+}
+
+function scaleControl(pairs, key, leftName, rightName, spreadVals){
+  const v = pairs[key] ?? 1;
+  const selIdx = valueToIdx(v);
+  const ticks = [];
+  for(let idx=0; idx<17; idx++){
+    const isMid = idx===8;
+    const sel = idx===selIdx ? 'selected' : '';
+    ticks.push(`<div class="tick ${isMid?'mid':''} ${sel}" data-key="${key}" data-idx="${idx}"></div>`);
+  }
+  let label;
+  if(selIdx===8) label = "Equal importance";
+  else if(selIdx<8) label = `${leftName} — ${SAATY_LABEL[8-selIdx+1]} (${8-selIdx+1})`;
+  else label = `${rightName} — ${SAATY_LABEL[selIdx-8+1]} (${selIdx-8+1})`;
+
+  let spreadHtml = '';
+  if(spreadVals && spreadVals.length>1){
+    const idxs = spreadVals.map(v=>valueToIdx(v));
+    const distinct = new Set(idxs).size;
+    spreadHtml = distinct>1
+      ? `<div class="scale-spread" style="color:var(--warn)">⌁ team split across ${distinct} positions</div>`
+      : `<div class="scale-spread" style="color:var(--good)">✓ team agrees</div>`;
+  }
+  return `
+  <div class="pair-block">
+    <div class="pair-heads"><span class="left">${leftName}</span><span class="vs">vs</span><span class="right">${rightName}</span></div>
+    <div class="scale"><div class="track"><div class="mid-mark"></div></div><div class="ticks">${ticks.join('')}</div></div>
+    <div class="scale-label">${label}</div>
+    ${spreadHtml}
+  </div>`;
+}
+
+function codeBox(id, value){
+  return `
+  <textarea class="code-box mono" id="${id}" readonly>${value}</textarea>
+  <div class="code-actions">
+    <button class="btn" data-copy="${id}">Copy code</button>
+    <span class="copy-status mono" id="${id}-status">copied ✓</span>
+  </div>`;
+}
+
+/* ============== ROLE SELECT ============== */
+function renderRoleSelect(){
+  return `
+  <div class="panel">
+    <h2><span class="tag">·</span>Start</h2>
+    <div class="desc">This tool works across a team without needing a shared server: one person sets up the study and sends this file around, everyone else scores it on their own, then sends back a short result code to be combined.</div>
+    <div class="role-grid">
+      <button class="role-card" data-role="coordinator">
+        <div class="role-eyebrow">SET UP</div>
+        <h3>I'm running the study</h3>
+        <p>Define the goal, criteria and alternatives, get a setup code to send your team, then import everyone's result codes and compute the group ranking.</p>
+      </button>
+      <button class="role-card" data-role="participant">
+        <div class="role-eyebrow">SCORE</div>
+        <h3>I was sent a study to score</h3>
+        <p>Paste in the setup code you received, work through the comparisons on your own, and get a result code to send back.</p>
+      </button>
+    </div>
+    <div class="resume-row">
+      <label class="filebtn">📂 Resume a saved session<input type="file" id="resumeFile" accept="application/json" style="display:none;"></label>
+      <span class="foot-note" style="margin-top:0;">If you saved progress earlier (as a coordinator or participant), load that file here to pick up where you left off.</span>
+    </div>
+  </div>`;
+}
+
+/* ============== COORDINATOR ============== */
+function coordStepNav(){
+  const labels = ["GOAL","CRITERIA","ALTERNATIVES","COLLECT","RESULTS"];
+  const order = ["goal","criteria","alternatives","collect","results"];
+  const rank = p => p==='selfweights'||p==='selfscoring' ? order.indexOf('collect') : order.indexOf(p);
+  const curRank = rank(state.cPhase);
+  return `<div class="stepnav">
+    ${labels.map((l,i)=>{
+      const cls = i===curRank ? 'active' : (i<curRank ? 'done':'');
+      const disabled = i>curRank ? 'disabled':'';
+      return `<button class="${cls}" ${disabled} data-goto-cphase="${order[i]}"><span class="n">${String(i+1).padStart(2,'0')}</span>${l}</button>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderCoordGoal(){
+  return `
+  <div class="panel">
+    <h2><span class="tag">01</span>Define the decision goal</h2>
+    <div class="desc">State the objective in one line — the top of the hierarchy everything else is weighed against.</div>
+    <input type="text" id="goalInput" value="${escapeAttr(state.goal)}" style="width:100%; background:var(--panel-2); border:1px solid var(--grid); color:var(--text); padding:12px 14px; border-radius:var(--radius); font-size:14px; font-family:'Space Grotesk';">
+    <div class="actions"><button class="btn primary" data-goto-cphase="criteria">Set criteria →</button></div>
+  </div>`;
+}
+
+function renderCoordCriteria(){
+  const rows = state.criteria.map((c,i)=>`
+    <div class="item-row">
+      <span class="idx mono">C${i+1}</span>
+      <input type="text" data-crit-id="${c.id}" value="${escapeAttr(c.name)}">
+      <button class="rm" data-rm-crit="${c.id}" ${state.criteria.length<=2?'disabled':''}>×</button>
+    </div>`).join('');
+  return `
+  <div class="panel">
+    <h2><span class="tag">02</span>List the criteria</h2>
+    <div class="desc">2–7 works best. These get locked once you generate the setup code, so everyone scores the same thing.</div>
+    <div class="item-list">${rows}</div>
+    <button class="add-btn" id="addCrit" ${state.criteria.length>=7?'disabled':''}>+ add criterion</button>
+    <div class="actions">
+      <button class="btn" data-goto-cphase="goal">← back</button>
+      <button class="btn primary" data-goto-cphase="alternatives">Set alternatives →</button>
+    </div>
+  </div>`;
+}
+
+function renderCoordAlternatives(){
+  const rows = state.alternatives.map((a,i)=>`
+    <div class="item-row">
+      <span class="idx mono">A${i+1}</span>
+      <input type="text" data-alt-id="${a.id}" value="${escapeAttr(a.name)}">
+      <button class="rm" data-rm-alt="${a.id}" ${state.alternatives.length<=2?'disabled':''}>×</button>
+    </div>`).join('');
+  return `
+  <div class="panel">
+    <h2><span class="tag">03</span>List the alternatives</h2>
+    <div class="desc">The options being weighed against each other (2–7 recommended).</div>
+    <div class="item-list">${rows}</div>
+    <button class="add-btn" id="addAlt" ${state.alternatives.length>=7?'disabled':''}>+ add alternative</button>
+    <div class="actions">
+      <button class="btn" data-goto-cphase="criteria">← back</button>
+      <button class="btn primary" data-goto-cphase="collect">Generate setup code →</button>
+    </div>
+  </div>`;
+}
+
+function currentSetupCode(){
+  return b64encode({t:'ahp-setup', v:1, goal: state.goal, criteria: state.criteria.map(c=>({name:c.name})), alternatives: state.alternatives.map(a=>({name:a.name}))});
+}
+
+function participantCR(p){
+  const cM = buildMatrix(state.criteria.length, p.critPairs);
+  const cCR = computeWeights(cM).CR;
+  let worstAlt = 0;
+  state.criteria.forEach(c=>{
+    const M = buildMatrix(state.alternatives.length, (p.altPairsByCrit||{})[c.id]||{});
+    worstAlt = Math.max(worstAlt, computeWeights(M).CR);
+  });
+  return Math.max(cCR, worstAlt);
+}
+
+function renderCoordCollect(){
+  const setupCode = currentSetupCode();
+  const participantRows = state.participants.map((p,i)=>{
+    const cr = participantCR(p);
+    const crClass = cr<=0.07?'good':(cr<=0.1?'warn':'bad');
+    return `<div class="participant-row">
+      <span class="chip" style="background:${personColor(i)}">${initials(p.name)}</span>
+      <span class="name">${escapeHtml(p.name)}</span>
+      <span class="src">${p.source==='self'?'you':'imported'}</span>
+      <span class="cr-tag status ${crClass}">CR ${cr.toFixed(2)}</span>
+      <button class="rm" data-rm-participant="${p.id}">×</button>
+    </div>`;
+  }).join('') || `<div class="foot-note">No results collected yet.</div>`;
+
+  const hasSelf = state.participants.some(p=>p.source==='self');
+  const importMsgs = state.importMessages.map(m=>`<div class="${m.ok?'success-box':'error-box'}">${escapeHtml(m.text)}</div>`).join('');
+
+  return `
+  <div class="panel">
+    <h2><span class="tag">04</span>Send this to your team</h2>
+    <div class="desc">Send everyone <strong style="color:var(--text)">this same HTML file</strong> plus the code below. They open the file, choose "I was sent a study to score," paste the code, and score independently.</div>
+    ${codeBox('setupCode', setupCode)}
+    <div class="instructions-box">
+      <strong>Message you can paste to your team:</strong><br>
+      "Please score this AHP study — open the attached file, choose 'I was sent a study to score', and paste in this code: <span class="mono">[code above]</span>. When you're done, send back the result code it gives you."
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="tag">·</span>Score it yourself (optional)</h2>
+    <div class="desc">${hasSelf ? "You've already added your own scoring below — remove it first if you want to redo it." : "If you're also a judge, not just the coordinator, add your own comparisons the same way your team will."}</div>
+    <div class="actions" style="margin-top:0; justify-content:flex-start;">
+      <button class="btn" id="startSelfScore" ${hasSelf?'disabled':''}>+ add my own scoring</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="tag">·</span>Import results</h2>
+    <div class="desc">Paste in a result code someone sent you (one at a time, or several — one per line).</div>
+    <textarea class="code-box mono" id="importTextarea" placeholder="Paste one or more result codes here, one per line...">${escapeHtml(state.importText)}</textarea>
+    <div class="actions" style="margin-top:10px; justify-content:flex-start;">
+      <button class="btn primary" id="importBtn">Add to study</button>
+    </div>
+    ${importMsgs}
+  </div>
+
+  <div class="panel">
+    <h2><span class="tag">·</span>Collected so far <span style="color:var(--text-faint); font-weight:400; font-size:12px;">(${state.participants.length})</span></h2>
+    ${participantRows}
+    <div class="actions">
+      <button class="btn" data-goto-cphase="alternatives">← edit study</button>
+      <button class="btn" id="saveSessionBtn">💾 save progress</button>
+      <button class="btn primary" id="computeBtn" ${state.participants.length===0?'disabled':''}>Compute group result →</button>
+    </div>
+  </div>`;
+}
+
+// solo scoring wizard reused for coordinator's self-score AND participant flow
+function renderSoloWeights(pairsStore, opts){
+  const n = state.criteria.length;
+  let blocks = '';
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) blocks += scaleControl(pairsStore, pairKey(i,j), state.criteria[i].name, state.criteria[j].name);
+  const M = buildMatrix(n, pairsStore);
+  const {CR} = computeWeights(M);
+  const crClass = CR<=0.07?'good':(CR<=0.1?'warn':'bad');
+  return `
+  <div class="panel">
+    <h2><span class="tag">${opts.tag}</span>Weigh the criteria</h2>
+    <div class="desc">Compare each pair of criteria against "<strong style="color:var(--text)">${escapeHtml(state.goal)}</strong>". Center = equal importance.</div>
+    ${blocks}
+    <div class="cr-row">
+      ${crGauge(CR)}
+      <div class="cr-info">Consistency ratio <span class="val mono">${CR.toFixed(3)}</span><br><span class="status ${crClass}">${CR<=0.1?'CR ≤ 0.10':'CR > 0.10 — consider revising'}</span></div>
+    </div>
+    <div class="actions">
+      <button class="btn" data-solo-back="1">← back</button>
+      <button class="btn primary" data-solo-next-weights="1">Score alternatives →</button>
+    </div>
+  </div>`;
+}
+
+function renderSoloScoring(pairsStoreByCrit, activeCritGetter, opts){
+  let activeCritId = activeCritGetter();
+  if(!activeCritId) activeCritId = state.criteria[0].id;
+  const activeCrit = state.criteria.find(c=>c.id===activeCritId) || state.criteria[0];
+  activeCritId = activeCrit.id;
+  const n = state.alternatives.length;
+  if(!pairsStoreByCrit[activeCritId]) pairsStoreByCrit[activeCritId] = {};
+
+  const tabFlags = {};
+  state.criteria.forEach(c=>{
+    const M = buildMatrix(n, pairsStoreByCrit[c.id]||{});
+    tabFlags[c.id] = computeWeights(M).CR;
+  });
+  const tabs = state.criteria.map(c=>{
+    const active = c.id===activeCritId ? 'active':'';
+    const warn = tabFlags[c.id]>0.1 ? 'warnflag':'';
+    return `<button class="${active} ${warn}" data-solo-crit-tab="${c.id}">${escapeHtml(c.name)}</button>`;
+  }).join('');
+
+  const pairs = pairsStoreByCrit[activeCritId];
+  let blocks = '';
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) blocks += scaleControl(pairs, pairKey(i,j), state.alternatives[i].name, state.alternatives[j].name);
+  const M = buildMatrix(n, pairs);
+  const {CR} = computeWeights(M);
+  const crClass = CR<=0.07?'good':(CR<=0.1?'warn':'bad');
+
+  const allDone = state.criteria.every(c => tabFlags[c.id] !== undefined && Object.keys(pairsStoreByCrit[c.id]||{}).length >= n*(n-1)/2);
+
+  return `
+  <div class="panel">
+    <h2><span class="tag">${opts.tag}</span>Score alternatives per criterion</h2>
+    <div class="desc">Compare the alternatives head-to-head under each criterion. Work through every tab — a "!" flags an inconsistent matrix.</div>
+    <div class="crit-tabs">${tabs}</div>
+    <div style="font-size:12px; color:var(--text-dim); margin-bottom:6px; font-family:'JetBrains Mono';">Comparing under: <span style="color:var(--accent)">${escapeHtml(activeCrit.name)}</span></div>
+    ${blocks}
+    <div class="cr-row">
+      ${crGauge(CR)}
+      <div class="cr-info">Consistency ratio <span class="val mono">${CR.toFixed(3)}</span><br><span class="status ${crClass}">${CR<=0.1?'CR ≤ 0.10':'CR > 0.10'}</span></div>
+    </div>
+    ${!allDone ? `<div class="foot-note" style="color:var(--warn)">Fill in every criterion tab before finishing — missing comparisons are treated as "equal" which understates your real judgment.</div>` : ''}
+    <div class="actions">
+      <button class="btn" data-solo-back-to-weights="1">← back</button>
+      <button class="btn primary" data-solo-finish="1">${opts.finishLabel}</button>
+    </div>
+  </div>`;
+}
+
+function renderCoordSelfWeights(){
+  return renderSoloWeights(state.draftCritPairs, {tag:'A'});
+}
+function renderCoordSelfScoring(){
+  return renderSoloScoring(state.draftAltPairsByCrit, ()=>state.draftActiveCrit, {tag:'B', finishLabel:'Add my scoring to the study'});
+}
+
+function renderCoordResults(){
+  const nCrit = state.criteria.length;
+  const nAlt = state.alternatives.length;
+  const personIds = state.participants.map(p=>p.id);
+  const isGroup = state.participants.length>1;
+
+  if(state.participants.length===0){
+    return `<div class="panel"><h2><span class="tag">05</span>Results</h2><div class="foot-note">No participant results yet — go back and collect at least one.</div>
+    <div class="actions"><button class="btn" data-goto-cphase="collect">← back to collect</button></div></div>`;
+  }
+
+  const critPairsByPerson = {}; state.participants.forEach(p=>critPairsByPerson[p.id]=p.critPairs||{});
+  const altPairsByPersonByCrit = {}; state.criteria.forEach(c=>{ altPairsByPersonByCrit[c.id]={}; state.participants.forEach(p=>{ altPairsByPersonByCrit[c.id][p.id] = (p.altPairsByCrit||{})[c.id]||{}; }); });
+
+  const aggCritPairs = aggregatePairs(nCrit, critPairsByPerson, personIds);
+  const critM = buildMatrix(nCrit, aggCritPairs);
+  const critResult = computeWeights(critM);
+
+  const altResults = state.criteria.map(c=>{
+    const bucket = altPairsByPersonByCrit[c.id];
+    const aggPairs = aggregatePairs(nAlt, bucket, personIds);
+    const M = buildMatrix(nAlt, aggPairs);
+    return computeWeights(M);
+  });
+
+  const finalScores = state.alternatives.map((a,ai)=>{
+    let score = 0;
+    state.criteria.forEach((c,ci)=> score += critResult.weights[ci]*altResults[ci].weights[ai]);
+    return {name:a.name, score};
+  });
+  finalScores.sort((x,y)=>y.score-x.score);
+
+  const overallCR = critResult.CR;
+  const worstAltCR = Math.max(...altResults.map(r=>r.CR), 0);
+  const anyInconsistent = overallCR>0.1 || worstAltCR>0.1;
+
+  const rankRows = finalScores.map((f,i)=>`
+    <div class="rank-row ${i===0?'first':''}">
+      <div class="rank-pos mono">${i+1}</div>
+      <div class="rank-name">${escapeHtml(f.name)}</div>
+      <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${(f.score*100).toFixed(1)}%"></div></div>
+      <div class="rank-pct mono">${(f.score*100).toFixed(1)}%</div>
+    </div>`).join('');
+
+  const critWeightRows = state.criteria.map((c,i)=>`
+    <div class="rank-row">
+      <div class="rank-pos mono">C${i+1}</div>
+      <div class="rank-name">${escapeHtml(c.name)}</div>
+      <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${(critResult.weights[i]*100).toFixed(1)}%"></div></div>
+      <div class="rank-pct mono">${(critResult.weights[i]*100).toFixed(1)}%</div>
+    </div>`).join('');
+
+  let perPersonHtml = '';
+  if(isGroup){
+    const perPersonScores = state.participants.map((p,pi)=>{
+      const cm = buildMatrix(nCrit, p.critPairs||{});
+      const cr = computeWeights(cm);
+      const ar = state.criteria.map(c=>{
+        const am = buildMatrix(nAlt, (p.altPairsByCrit||{})[c.id]||{});
+        return computeWeights(am);
+      });
+      const scores = state.alternatives.map((a,ai)=>{
+        let s=0; state.criteria.forEach((c,ci)=> s += cr.weights[ci]*ar[ci].weights[ai]);
+        return s;
+      });
+      const top = state.alternatives[scores.indexOf(Math.max(...scores))];
+      return {name:p.name, top: top.name, colorIdx:pi};
+    });
+    perPersonHtml = `
+    <div class="panel">
+      <h2><span class="tag">·</span>Individual top picks</h2>
+      <div class="desc">Each person's own weights, computed independently — useful for spotting where the group agrees or splits.</div>
+      <div class="completion-grid">
+        ${perPersonScores.map(p=>`<div class="completion-cell"><span><span class="chip" style="background:${personColor(p.colorIdx)}; margin-right:6px;">${initials(p.name)}</span>${escapeHtml(p.name)}</span><span style="color:var(--accent)">${escapeHtml(p.top)}</span></div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="panel">
+    <h2><span class="tag">05</span>Result — ranked alternatives</h2>
+    <div class="desc">Goal: <strong style="color:var(--text)">${escapeHtml(state.goal)}</strong>. ${isGroup ? `Aggregated across ${state.participants.length} people via geometric mean of judgments, then combined with criteria weights.` : "Scores combine criteria weights with each alternative's performance under every criterion."}</div>
+    ${rankRows}
+    ${anyInconsistent ? `<div class="foot-note" style="color:var(--warn)">⚠ Aggregated matrices exceed CR 0.10 in places (criteria: ${overallCR.toFixed(3)}, worst alternative set: ${worstAltCR.toFixed(3)}). The ranking is still computed, but some judgments are worth revisiting.</div>` : `<div class="foot-note" style="color:var(--good)">✓ Aggregated matrices are within the CR ≤ 0.10 consistency threshold.</div>`}
+  </div>
+
+  ${perPersonHtml}
+
+  <div class="panel">
+    <h2><span class="tag">·</span>Criteria weights (group-aggregated)</h2>
+    ${critWeightRows}
+  </div>
+
+  <div class="panel">
+    <h2><span class="tag">·</span>Full breakdown</h2>
+    <table class="matrix-table">
+      <thead><tr><th>Alternative</th>${state.criteria.map((c,ci)=>`<th>${escapeHtml(c.name)}<br><span style="color:var(--text-faint)">(${(critResult.weights[ci]*100).toFixed(0)}%)</span></th>`).join('')}<th>Total</th></tr></thead>
+      <tbody>
+      ${state.alternatives.map((a,ai)=>`
+        <tr>
+          <td style="text-align:left; color:var(--text)">${escapeHtml(a.name)}</td>
+          ${state.criteria.map((c,ci)=>`<td>${(altResults[ci].weights[ai]*100).toFixed(1)}%</td>`).join('')}
+          <td class="wcell">${(finalScores.find(f=>f.name===a.name)?.score*100 ?? 0).toFixed(1)}%</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="foot-note">Weights via geometric mean; group judgments aggregated per-cell by geometric mean before weight extraction. CR ≤ 0.10 is the conventional acceptance threshold.</div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" data-goto-cphase="collect">← back to collect</button>
+    <button class="btn" id="saveSessionBtn2">💾 save progress</button>
+    <button class="btn" id="resetAllBtn">↺ start over</button>
+  </div>`;
+}
+
+function renderCoordinator(){
+  const phaseFns = {
+    goal: renderCoordGoal, criteria: renderCoordCriteria, alternatives: renderCoordAlternatives,
+    collect: renderCoordCollect, selfweights: renderCoordSelfWeights, selfscoring: renderCoordSelfScoring,
+    results: renderCoordResults
+  };
+  return coordStepNav() + (phaseFns[state.cPhase] || renderCoordGoal)();
+}
+
+/* ============== PARTICIPANT ============== */
+function partStepNav(){
+  const labels = ["LOAD STUDY","WEIGH CRITERIA","SCORE OPTIONS","EXPORT"];
+  const order = ["load","weights","scoring","export"];
+  const curRank = order.indexOf(state.pPhase);
+  return `<div class="stepnav">
+    ${labels.map((l,i)=>{
+      const cls = i===curRank ? 'active' : (i<curRank ? 'done':'');
+      const disabled = i>curRank ? 'disabled':'';
+      return `<button class="${cls}" ${disabled} data-goto-pphase="${order[i]}"><span class="n">${String(i+1).padStart(2,'0')}</span>${l}</button>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderPartLoad(){
+  return `
+  <div class="panel">
+    <h2><span class="tag">01</span>Load the study</h2>
+    <div class="desc">Paste the setup code you were sent, then your name.</div>
+    <textarea class="code-box mono" id="setupCodeInput" placeholder="Paste the setup code here...">${escapeHtml(state.setupCodeInput)}</textarea>
+    <div style="height:12px;"></div>
+    <input type="text" class="name-input" id="myNameInput" placeholder="Your name" value="${escapeAttr(state.myName)}">
+    ${state.loadError ? `<div class="error-box">${escapeHtml(state.loadError)}</div>` : ''}
+    <div class="actions"><button class="btn primary" id="loadStudyBtn">Load study →</button></div>
+  </div>`;
+}
+
+function renderPartWeights(){
+  return `
+  <div class="panel" style="margin-bottom:16px;">
+    <h2><span class="tag">·</span>${escapeHtml(state.goal)}</h2>
+    <div class="desc">Scoring as <strong style="color:var(--text)">${escapeHtml(state.myName)}</strong>. Criteria: ${state.criteria.map(c=>escapeHtml(c.name)).join(', ')}. Alternatives: ${state.alternatives.map(a=>escapeHtml(a.name)).join(', ')}.</div>
+  </div>
+  ` + renderSoloWeights(state.myCritPairs, {tag:'02'});
+}
+
+function renderPartScoring(){
+  return renderSoloScoring(state.myAltPairsByCrit, ()=>state.myActiveCrit, {tag:'03', finishLabel:'Finish & get my export code →'});
+}
+
+function renderPartExport(){
+  return `
+  <div class="panel">
+    <h2><span class="tag">04</span>Send this back</h2>
+    <div class="desc">Copy this code and send it back to whoever sent you the study — that's all they need to include your scoring.</div>
+    ${codeBox('exportCode', state.exportCode)}
+    <div class="success-box">Done — your comparisons are captured in the code above.</div>
+    <div class="actions">
+      <button class="btn" data-goto-pphase="scoring">← back to editing</button>
+      <button class="btn" id="saveSessionBtn3">💾 save a copy</button>
+    </div>
+  </div>`;
+}
+
+function renderParticipant(){
+  const phaseFns = { load: renderPartLoad, weights: renderPartWeights, scoring: renderPartScoring, export: renderPartExport };
+  return partStepNav() + (phaseFns[state.pPhase] || renderPartLoad)();
+}
+
+/* ============== APP SHELL ============== */
+function renderApp(){
+  let body;
+  if(!state.role) body = renderRoleSelect();
+  else if(state.role==='coordinator') body = renderCoordinator();
+  else body = renderParticipant();
+
+  const idLine = state.role
+    ? `GOAL: ${escapeHtml(state.goal).toUpperCase()}<br>${state.criteria.length} CRITERIA · ${state.alternatives.length} ALTERNATIVES${state.role==='coordinator' ? ' · '+state.participants.length+' COLLECTED' : ''}`
+    : `ANALYTIC HIERARCHY PROCESS`;
+
+  return `
+  <header>
+    <div class="brand">
+      <div class="mark"></div>
+      <div>
+        <h1>AHP Decision Instrument</h1>
+        <div class="subtitle">${state.role ? (state.role==='coordinator'?'COORDINATOR MODE':'PARTICIPANT MODE') : 'ANALYTIC HIERARCHY PROCESS'}</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="instrument-id">${idLine}</div>
+      ${state.role ? `<div class="header-links"><button class="link-btn quiet" id="changeRoleBtn">↺ change role</button></div>` : ''}
+    </div>
+  </header>
+  ${body}`;
+}
+
+/* ============== EVENTS ============== */
+function attachHandlers(){
+  const app = document.getElementById('app');
+
+  // role select
+  app.querySelectorAll('[data-role]').forEach(b=>b.addEventListener('click', ()=>{
+    state.role = b.dataset.role;
+    render();
+  }));
+  const resumeFile = document.getElementById('resumeFile');
+  if(resumeFile) resumeFile.addEventListener('change', e=>{
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      try{
+        const loaded = JSON.parse(ev.target.result);
+        state = Object.assign(freshState(), loaded);
+        render();
+      }catch(err){ alert('Could not read that session file.'); }
+    };
+    reader.readAsText(file);
+  });
+
+  const changeRoleBtn = document.getElementById('changeRoleBtn');
+  if(changeRoleBtn) changeRoleBtn.addEventListener('click', ()=>{
+    if(!confirm('Switch roles? Unsaved progress in this view will be lost unless you saved a session file.')) return;
+    state = freshState(); render();
+  });
+
+  // goal input (coordinator)
+  const goalInput = document.getElementById('goalInput');
+  if(goalInput) goalInput.addEventListener('input', e=>{ state.goal = e.target.value; });
+
+  // coordinator phase nav
+  app.querySelectorAll('[data-goto-cphase]').forEach(b=>b.addEventListener('click', ()=>{
+    state.cPhase = b.dataset.gotoCphase; render();
+  }));
+  app.querySelectorAll('[data-goto-pphase]').forEach(b=>b.addEventListener('click', ()=>{
+    state.pPhase = b.dataset.gotoPphase; render();
+  }));
+
+  // criteria / alternatives editing (coordinator)
+  const addCrit = document.getElementById('addCrit');
+  if(addCrit) addCrit.addEventListener('click', ()=>{ if(state.criteria.length<7){ state.criteria.push({id:state.nextCritId++, name:`Criterion ${state.criteria.length+1}`}); render(); } });
+  app.querySelectorAll('[data-rm-crit]').forEach(b=>b.addEventListener('click', ()=>{
+    const id=parseInt(b.dataset.rmCrit); if(state.criteria.length<=2) return;
+    state.criteria = state.criteria.filter(c=>c.id!==id); render();
+  }));
+  app.querySelectorAll('[data-crit-id]').forEach(inp=>inp.addEventListener('input', e=>{
+    const id=parseInt(inp.dataset.critId); const c=state.criteria.find(c=>c.id===id); if(c) c.name=e.target.value;
+  }));
+  const addAlt = document.getElementById('addAlt');
+  if(addAlt) addAlt.addEventListener('click', ()=>{ if(state.alternatives.length<7){ state.alternatives.push({id:state.nextAltId++, name:`Option ${state.alternatives.length+1}`}); render(); } });
+  app.querySelectorAll('[data-rm-alt]').forEach(b=>b.addEventListener('click', ()=>{
+    const id=parseInt(b.dataset.rmAlt); if(state.alternatives.length<=2) return;
+    state.alternatives = state.alternatives.filter(a=>a.id!==id); render();
+  }));
+  app.querySelectorAll('[data-alt-id]').forEach(inp=>inp.addEventListener('input', e=>{
+    const id=parseInt(inp.dataset.altId); const a=state.alternatives.find(a=>a.id===id); if(a) a.name=e.target.value;
+  }));
+
+  // copy buttons
+  app.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click', ()=>{
+    const id = b.dataset.copy;
+    const box = document.getElementById(id);
+    const statusEl = document.getElementById(id+'-status');
+    const doShow = ()=>{ if(statusEl){ statusEl.classList.add('show'); setTimeout(()=>statusEl.classList.remove('show'), 1600); } };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(box.value).then(doShow).catch(()=>{ box.select(); document.execCommand('copy'); doShow(); });
+    } else {
+      box.select(); document.execCommand('copy'); doShow();
+    }
+  }));
+
+  // self-score start (coordinator)
+  const startSelfScore = document.getElementById('startSelfScore');
+  if(startSelfScore) startSelfScore.addEventListener('click', ()=>{
+    const name = prompt('Your name:', 'You');
+    if(name===null) return;
+    state.selfName = name || 'You';
+    state.draftCritPairs = {}; state.draftAltPairsByCrit = {}; state.draftActiveCrit = null;
+    state.cPhase = 'selfweights'; render();
+  });
+
+  // solo weights/scoring shared handlers — figure out which store is active
+  function activeStores(){
+    if(state.role==='coordinator') return { pairs: state.draftCritPairs, byCrit: state.draftAltPairsByCrit, getActive:()=>state.draftActiveCrit, setActive:v=>state.draftActiveCrit=v };
+    return { pairs: state.myCritPairs, byCrit: state.myAltPairsByCrit, getActive:()=>state.myActiveCrit, setActive:v=>state.myActiveCrit=v };
+  }
+
+  app.querySelectorAll('.tick').forEach(t=>t.addEventListener('click', ()=>{
+    const key = t.dataset.key; const idx = parseInt(t.dataset.idx);
+    let v; if(idx===8) v=1; else if(idx<8) v=8-idx+1; else v=1/(idx-8+1);
+    const s = activeStores();
+    const onWeightsPhase = state.cPhase==='selfweights' || state.pPhase==='weights';
+    if(onWeightsPhase){ s.pairs[key]=v; }
+    else { const cid = s.getActive() || state.criteria[0].id; if(!s.byCrit[cid]) s.byCrit[cid]={}; s.byCrit[cid][key]=v; }
+    render();
+  }));
+
+  app.querySelectorAll('[data-solo-crit-tab]').forEach(b=>b.addEventListener('click', ()=>{
+    activeStores().setActive(parseInt(b.dataset.soloCritTab)); render();
+  }));
+  app.querySelectorAll('[data-solo-back]').forEach(b=>b.addEventListener('click', ()=>{
+    if(state.role==='coordinator') state.cPhase='collect'; else state.pPhase='load';
+    render();
+  }));
+  app.querySelectorAll('[data-solo-next-weights]').forEach(b=>b.addEventListener('click', ()=>{
+    if(state.role==='coordinator') state.cPhase='selfscoring'; else state.pPhase='scoring';
+    render();
+  }));
+  app.querySelectorAll('[data-solo-back-to-weights]').forEach(b=>b.addEventListener('click', ()=>{
+    if(state.role==='coordinator') state.cPhase='selfweights'; else state.pPhase='weights';
+    render();
+  }));
+  app.querySelectorAll('[data-solo-finish]').forEach(b=>b.addEventListener('click', ()=>{
+    if(state.role==='coordinator'){
+      const id = state.nextParticipantId++;
+      state.participants.push({id, name: state.selfName || 'You', source:'self', critPairs: state.draftCritPairs, altPairsByCrit: state.draftAltPairsByCrit});
+      state.cPhase = 'collect';
+    } else {
+      state.exportCode = b64encode({
+        t:'ahp-result', v:1, name: state.myName,
+        goal: state.goal,
+        criteria: state.criteria.map(c=>({name:c.name})),
+        alternatives: state.alternatives.map(a=>({name:a.name})),
+        critPairs: state.myCritPairs,
+        altPairsByCrit: state.myAltPairsByCrit
+      });
+      state.pPhase = 'export';
+    }
+    render();
+  }));
+
+  // import (coordinator)
+  const importTextarea = document.getElementById('importTextarea');
+  if(importTextarea) importTextarea.addEventListener('input', e=>{ state.importText = e.target.value; });
+  const importBtn = document.getElementById('importBtn');
+  if(importBtn) importBtn.addEventListener('click', ()=>{
+    const lines = state.importText.split('\\n').map(l=>l.trim()).filter(Boolean);
+    const messages = [];
+    lines.forEach(code=>{
+      try{
+        const obj = b64decode(code);
+        if(obj.t!=='ahp-result') throw new Error('not a result code');
+        const decCrit = (obj.criteria||[]).map((c,i)=>({id:'x'+i, name:c.name}));
+        const decAlt = (obj.alternatives||[]).map((a,i)=>({id:'x'+i, name:a.name}));
+        if(!sameConfig(state.criteria, state.alternatives, decCrit, decAlt)){
+          messages.push({ok:false, text:`✕ "${obj.name||'unnamed'}" — criteria/alternatives don't match this study. Ask them to re-load the current setup code and re-score.`});
+          return;
+        }
+        const id = state.nextParticipantId++;
+        state.participants.push({id, name: obj.name || `Participant ${state.participants.length+1}`, source:'imported', critPairs: obj.critPairs||{}, altPairsByCrit: obj.altPairsByCrit||{}});
+        messages.push({ok:true, text:`✓ Added "${obj.name||'unnamed'}".`});
+      }catch(err){
+        messages.push({ok:false, text:`✕ Couldn't read one of the pasted codes — check it was copied in full.`});
+      }
+    });
+    state.importMessages = messages;
+    state.importText = '';
+    render();
+  });
+  app.querySelectorAll('[data-rm-participant]').forEach(b=>b.addEventListener('click', ()=>{
+    const id = parseInt(b.dataset.rmParticipant);
+    state.participants = state.participants.filter(p=>p.id!==id);
+    render();
+  }));
+
+  const computeBtn = document.getElementById('computeBtn');
+  if(computeBtn) computeBtn.addEventListener('click', ()=>{ state.cPhase='results'; render(); });
+
+  // participant load
+  const setupCodeInput = document.getElementById('setupCodeInput');
+  if(setupCodeInput) setupCodeInput.addEventListener('input', e=>{ state.setupCodeInput = e.target.value; });
+  const myNameInput = document.getElementById('myNameInput');
+  if(myNameInput) myNameInput.addEventListener('input', e=>{ state.myName = e.target.value; });
+  const loadStudyBtn = document.getElementById('loadStudyBtn');
+  if(loadStudyBtn) loadStudyBtn.addEventListener('click', ()=>{
+    if(!state.myName.trim()){ state.loadError = 'Enter your name first.'; render(); return; }
+    try{
+      const obj = b64decode(state.setupCodeInput);
+      if(obj.t!=='ahp-setup') throw new Error('wrong code type');
+      state.goal = obj.goal;
+      state.criteria = (obj.criteria||[]).map((c,i)=>({id:i+1, name:c.name}));
+      state.alternatives = (obj.alternatives||[]).map((a,i)=>({id:i+1, name:a.name}));
+      state.myCritPairs = {}; state.myAltPairsByCrit = {}; state.myActiveCrit = null;
+      state.loadError = '';
+      state.pPhase = 'weights';
+    }catch(err){
+      state.loadError = "Couldn't read that code — check it was copied in full, with nothing missing.";
+    }
+    render();
+  });
+
+  // save session (all variants)
+  ['saveSessionBtn','saveSessionBtn2','saveSessionBtn3'].forEach(bid=>{
+    const btn = document.getElementById(bid);
+    if(btn) btn.addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'ahp-session.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  });
+
+  const resetAllBtn = document.getElementById('resetAllBtn');
+  if(resetAllBtn) resetAllBtn.addEventListener('click', ()=>{
+    if(!confirm('Clear everything and start over?')) return;
+    state = freshState(); render();
+  });
+}
+
+render();
+</script>
+</body>
+</html>
